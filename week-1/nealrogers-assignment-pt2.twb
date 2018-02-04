@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='utf-8' ?>
 
 <!-- build 10500.17.1226.1925                               -->
-<workbook original-version='10.5' source-build='10.5.0 (10500.17.1226.1925)' source-platform='win' version='10.5' xmlns:user='http://www.tableausoftware.com/xml/user'>
+<workbook original-version='10.5' source-build='10.5.0 (10500.17.1226.1925)' source-platform='win' version='10.5' xml:base='https://us-east-1.online.tableau.com' xmlns:user='http://www.tableausoftware.com/xml/user'>
+  <repository-location id='nealrogers-assignment-pt2' path='/t/nealrogerstableausite/workbooks' revision='1.0' site='nealrogerstableausite' />
   <preferences>
     <preference name='ui.encoding.shelf.height' value='24' />
     <preference name='ui.shelf.height' value='26' />
@@ -11,7 +12,7 @@
       <connection class='federated'>
         <named-connections>
           <named-connection caption='nealrogers-assignment-pt2-csv' name='textscan.01bt1dz1m4vr7a19omh7m0lsxxyj'>
-            <connection class='textscan' directory='D:/Projects/Educational/IS362/week-1' filename='nealrogers-assignment-pt2-csv.csv' password='' server='' />
+            <connection class='textscan' directory='D:/Projects/Educational/IS362/week-1' filename='nealrogers-assignment-pt2-csv.csv' password='' server='' workgroup-auth-mode='as-is' />
           </named-connection>
         </named-connections>
         <relation connection='textscan.01bt1dz1m4vr7a19omh7m0lsxxyj' name='nealrogers-assignment-pt2-csv.csv' table='[nealrogers-assignment-pt2-csv#csv]' type='table'>
