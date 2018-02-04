@@ -50,18 +50,15 @@ AND f.day = '5'
 AND f.year = '2013'
 GROUP BY p.manufacturer;
 
--- The query below ...
+-- What was the avergae departure delay for New York area airports by airport and carrier?
 
-SELECT w.temp AS "Temperature',
-f.flight AS 'Flight Number'
-FROM weather w
-WHERE temp IN
-(SELECT temp
-FROM weather
-WHERE temp <= 32.00)
-JOIN flights f
-ON w.origin = f.origin
-;
-
-SELECT *
-FROM flights;
+SELECT ap.name AS 'Airport',
+al.name AS 'Airlines',
+AVG(f.dep_delay) AS 'Departure Delay (AVG)'
+FROM flights f
+JOIN airlines al
+ON f.carrier = al.carrier
+JOIN airports ap
+ON f.origin = ap.faa
+GROUP BY ap.name, al.name
+ORDER BY AVG(f.dep_delay) DESC;
