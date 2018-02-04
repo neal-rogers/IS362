@@ -28,7 +28,7 @@ AND tailnum IS NULL;
 
 -- The query below joins the planes and flights tables, calculates the total distance flown for each flight on July 5, 2013, and groups results by manufacturer.
 
-SELECT p.manufacturer AS Manufacturer,
+SELECT p.manufacturer AS 'Manufacturer',
 SUM(distance) AS 'Total Distance'
 FROM flights f
 JOIN planes p
@@ -38,9 +38,9 @@ AND f.day = '5'
 AND f.year = '2013'
 GROUP BY p.manufacturer;
 
--- The query below joins (LEFT) the planes and flights tables, calculates the total distance flown for each flight on July 5, 2013, and groups results by manufacturer - including rows without recorded manufacturers.
+-- The query below joins the planes and flights tables, calculates the total distance flown for each flight on July 5, 2013, and groups results by manufacturer - (using a LEFT JOIN) including rows without recorded manufacturers.
 
-SELECT p.manufacturer AS Manufacturer,
+SELECT p.manufacturer AS 'Manufacturer',
 SUM(distance) AS 'Total Distance'
 FROM flights f
 LEFT JOIN planes p
@@ -52,12 +52,16 @@ GROUP BY p.manufacturer;
 
 -- The query below ...
 
-SELECT p.manufacturer AS Manufacturer,
-SUM(distance) AS 'Total Distance'
-FROM airlines a
-JOIN planes p
-ON f.tailnum = p.tailnum
-ON ;
+SELECT w.temp AS "Temperature',
+f.flight AS 'Flight Number'
+FROM weather w
+WHERE temp IN
+(SELECT temp
+FROM weather
+WHERE temp <= 32.00)
+JOIN flights f
+ON w.origin = f.origin
+;
 
 SELECT *
 FROM flights;
