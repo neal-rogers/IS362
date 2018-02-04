@@ -38,7 +38,8 @@ AND f.day = '5'
 AND f.year = '2013'
 GROUP BY p.manufacturer;
 
--- The query below joins the planes and flights tables, calculates the total distance flown for each flight on July 5, 2013, and groups results by manufacturer - (using a LEFT JOIN) including rows without recorded manufacturers.
+-- The query below joins the planes and flights tables, calculates the total distance flown for each flight on July 5, 2013, and groups results by manufacturer
+-- Using a LEFT JOIN includes rows without recorded manufacturers.
 
 SELECT p.manufacturer AS 'Manufacturer',
 SUM(distance) AS 'Total Distance'
