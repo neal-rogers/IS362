@@ -1,0 +1,5 @@
+Los Angeles,117,694,62,497
+Phoenix,415,4840,12,221
+San Diego,65,383,20,212
+San Francisco,129,320,102,503
+Seattle,61,201,305,1841
