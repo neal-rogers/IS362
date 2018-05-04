@@ -1,0 +1,364 @@
+Geodatabase Practicum: Introduction to Spatial Databases Using Open Source Software
+July 15, 2014
+Frank Donnelly, Geospatial Data Librarian, Baruch CUNY
+
+SQL for Exercises
+
+----- CHAPTER 5 SECTION 1: BASIC TASKS -----
+
+
+*** 1 ***
+
+PRAGMA  table_info  (a_boroughs)
+
+
+*** 2 ***
+
+SELECT  *
+FROM  a_boroughs
+
+
+*** 3 ***
+
+SELECT  zcta, bcode, geometry
+FROM  a_zctas
+WHERE bcode="36061"
+ORDER BY zcta
+
+
+*** 4 ***
+
+SELECT  bcode,  COUNT(zcta) AS  zctas
+FROM  a_zctas
+GROUP  BY  bcode
+
+
+*** 5 ***
+
+SELECT  *
+FROM  b_2010census_lookup
+
+
+*** 6 ***
+
+SELECT  geoid, geoid2, geolabel, HD01_S001   AS  pop2010
+FROM  b_zctas_2010census
+ORDER  BY  pop2010 DESC
+
+
+*** 7 ***
+
+SELECT  zcta, bcode,  HD01_S001   AS  pop2010
+FROM  a_zctas, b_zctas_2010census
+WHERE  zcta=geoid2  AND  bcode="36061" AND  pop2010 > 200
+ORDER  BY  pop2010
+
+
+*** 8 ***
+
+SELECT  zcta, bcode,  HD01_S001   AS  pop2010
+FROM  a_zctas  AS  Z
+JOIN b_zctas_2010census AS  C ON  (Z.zcta = C.geoid2)
+WHERE  bcode="36061" AND  pop2010 > 200
+ORDER  BY  pop2010
+
+
+*** 9 ***
+
+SELECT  a_zctas.zcta AS  zcta, a_zctas.bcode   AS  bcode,  b_zctas_2010census.HD01_S001  AS
+pop2010
+FROM  a_zctas, b_zctas_2010census
+WHERE  zcta=b_zctas_2010census.geoid2  AND  bcode="36061" AND  pop2010 > 200
+ORDER  BY  pop2010
+
+
+----- CHAPTER 5 SECTION 2: SPATIAL SQL -----
+
+
+*** 10 ***
+
+SELECT  stop_name,  trains, bcode
+FROM  a_subway_stations
+WHERE  MbrMaxY(geometry) IN  ( SELECT  Max(MbrMaxY(geometry))
+FROM  a_subway_stations)
+
+
+*** 11 ***
+
+SELECT  stop_name,  trains, bcode,  ST_AsText(geometry)  AS  coordinates
+FROM  a_subway_stations
+
+
+*** 12 ***
+
+SELECT  stop_name,  trains,  bcode,
+ST_AsText(Transform(geometry,4269))  AS  coordinates
+FROM  a_subway_stations
+
+
+*** 13 ***
+
+SELECT  *
+FROM  spatial_ref_sys
+WHERE  srid = 4269
+
+
+*** 14 ***
+
+SELECT  *
+FROM  geometry_columns
+
+
+*** 15 ***
+
+SELECT  bname, bcode,  ST_AsText(Transform(ST_Envelope(geometry),4269))  AS  bbox
+FROM  a_boroughs
+
+
+*** 16 ***
+
+SELECT  stop_name,  trains,
+ST_DISTANCE(a_zctas.geometry, a_subway_stations.geometry) AS  dist
+FROM  a_zctas,  a_subway_stations
+WHERE  zcta  = "10010" AND  dist <= 2640
+ORDER  BY  dist
+
+
+*** 17 ***
+
+SELECT  stop_name,  trains,
+ROUND((ST_Distance(a_zctas.geometry,  a_subway_stations.geometry))/5280,2)  AS  dist
+FROM  a_zctas,  a_subway_stations
+WHERE  zcta  = "10010"  AND  dist <= 2640
+ORDER  BY  dist
+
+
+*** 18 ***
+
+SELECT  stop_name,  trains
+FROM  a_zctas,  a_subway_stations
+WHERE  zcta  = "10010"  AND  ST_Within  (a_subway_stations.geometry, a_zctas.geometry)
+
+
+*** 19 ***
+
+SELECT zcta, stop_name, trains
+FROM a_zctas, a_subway_stations
+WHERE ST_Within (a_subway_stations.geometry, a_zctas.geometry)
+ORDER BY zcta, stop_name
+
+
+*** 20 ***
+
+SELECT zcta, COUNT(stop_id) AS stations
+FROM a_zctas, a_subway_stations
+WHERE ST_Within (a_subway_stations.geometry, a_zctas.geometry)
+GROUP BY zcta
+ORDER BY stations DESC, zcta
+
+
+*** 21 ***
+
+SELECT zcta1.zcta AS zcta, zcta2.zcta AS neighbor
+FROM a_zctas AS zcta1, a_zctas AS zcta2
+WHERE ST_Touches (zcta1.geometry, zcta2.geometry)
+
+
+*** 22 ***
+
+SELECT tract1.tractid AS tract, tract2.tractid AS neighbor
+FROM a_tracts AS tract1, a_tracts AS tract2
+WHERE ST_Touches(tract1.geometry, tract2.geometry) AND
+tract1.ROWID IN
+(SELECT ROWID FROM SpatialIndex 
+WHERE f_table_name='a_tracts' AND search_frame=tract2.geometry)
+order by tract, neighbor
+
+
+*** 23 ***
+
+SELECT CreateSpatialIndex("layer_name", "geometry")
+
+
+*** 24 ***
+
+SELECT zcta, ST_Area(geometry) AS sqft, (ST_Area(geometry))*0.0000000358700643 AS sqmi
+FROM a_zctas
+ORDER BY sqmi DESC
+
+
+*** 25 ***
+
+SELECT zcta, HD01_S001 AS pop2010,
+HD01_S001 / ((ST_Area(geometry))*0.0000000358700643) AS density
+FROM a_zctas, b_zctas_2010census
+WHERE zcta=geoid2 AND pop2010 > 200
+ORDER BY density DESC
+
+
+----- CHAPTER 5 SECTION 3: EXTENDING THE DB -----
+
+
+*** 26 ***
+
+CREATE VIEW d_zctas_2010pop AS
+SELECT zcta, bcode, HD01_S001 AS pop2010
+FROM a_zctas, b_zctas_2010census
+WHERE zcta=geoid2 AND pop2010 > 200
+ORDER BY pop2010
+
+
+*** 27 ***
+
+CREATE VIEW d_zctas_spatial AS 
+SELECT a_zctas.ROWID, zcta, bcode, HD01_S001 AS pop2010, geometry
+FROM a_zctas, b_zctas_2010census
+WHERE zcta=geoid2 AND pop2010 > 200
+ORDER BY pop2010
+
+
+*** 28 ***
+
+INSERT INTO views_geometry_columns
+(view_name, view_geometry, view_rowid, f_table_name, f_geometry_column, read_only)
+VALUES ("d_zctas_spatial", "geometry", "ROWID", "a_zctas", "geometry", 1)
+
+*** 29 ***
+
+CREATE TABLE d_zctas_density (
+zcta TEXT NOT NULL PRIMARY KEY,
+bcode TEXT,
+pop2010 INTEGER,
+density REAL)
+
+
+*** 30 ***
+
+SELECT AddGeometryColumn ( "d_zctas_density", "geometry", 2263, "MULTIPOLYGON", "XY")
+
+
+*** 31 ***
+
+INSERT INTO d_zctas_density (zcta, bcode, pop2010, density, geometry)
+SELECT zcta, bcode, HD01_S001, HD01_S001/((ST_Area(geometry))*0.0000000358700643),
+geometry
+FROM a_zctas, b_zctas_2010census
+WHERE zcta=geoid2 AND HD01_S001 > 200
+
+
+*** 32 ***
+
+SELECT *
+FROM d_zctas_density
+
+*** 33 ***
+
+PRAGMA table_info (d_zctas_density)
+
+
+*** 34 ***
+
+WILL DO SHAPEFILE EXAMPLE IN CLASS
+
+
+*** 35 ***
+
+SELECT * FROM a_tracts
+
+
+*** 36 ***
+
+CREATE TABLE a_ntas (
+nta TEXT NOT NULL PRIMARY KEY,
+nta_name TEXT,
+bcode TEXT)
+
+
+*** 37 ***
+
+SELECT AddGeometryColumn ( "a_ntas", "geometry", 2263, "MULTIPOLYGON", "XY")
+
+
+*** 38 ***
+
+INSERT INTO a_ntas (nta, nta_name, bcode, geometry)
+SELECT nta, nta_name, bcode, ST_Union(geometry)
+FROM a_tracts
+GROUP BY nta
+
+
+*** 39 ***
+
+SELECT * FROM a_ntas
+
+
+*** 40 ***
+
+SELECT * FROM nyc_popcenters
+
+
+*** 41 ***
+
+CREATE TABLE a_borough_popcenters (
+bcode TEXT NOT NULL PRIMARY KEY,
+cname TEXT,
+pop2010 INTEGER,
+latitude REAL,
+longitude REAL)
+
+
+*** 42 ***
+
+SELECT AddGeometryColumn ("a_borough_popcenters", "geometry", 2263, "POINT", "XY")
+
+
+*** 43 ***
+
+INSERT INTO a_borough_popcenters (bcode, cname, pop2010, latitude, longitude, geometry)
+SELECT (statefp || countyfp), couname, population, latitude, longitude,
+Transform(MakePoint(longitude, latitude, 4269),2263)
+FROM nyc_popcenters
+
+
+*** 44 ***
+
+SELECT * FROM a_borough_popcenters
+
+
+*** 45 ***
+
+DROP TABLE nyc_popcenters
+
+
+*** 46 ***
+
+ALTER TABLE a_borough_popcenters ADD COLUMN bname TEXT
+
+
+*** 47 ***
+
+UPDATE a_borough_popcenters
+SET bname=cname WHERE bcode IN ("36005","36081")
+
+
+*** 48 ***
+
+UPDATE a_borough_popcenters
+SET bname="Brooklyn" WHERE bcode="36047"
+
+
+*** 49 ***
+
+UPDATE a_borough_popcenters
+SET bname="Manhattan" WHERE bcode="36061"
+
+
+*** 50 ***
+
+UPDATE a_borough_popcenters
+SET bname="Staten Island" WHERE bcode="36085"
+
+*** 51 ***
+
+SELECT * FROM a_borough_popcenters
+
